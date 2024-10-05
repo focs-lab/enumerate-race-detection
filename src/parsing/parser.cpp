@@ -1,6 +1,5 @@
 #include <cstdint>
 #include <fstream>
-#include <ios>
 #include <iostream>
 #include <stack>
 #include <unordered_map>
@@ -8,19 +7,22 @@
 
 #include "../common/event.cpp"
 
-void parseBinaryFile(const std::string &filename, std::vector<Event> &events,
-                     std::unordered_map<EventIndex, EventIndex> &po,
-                     std::unordered_map<EventIndex, uint32_t> &goodWrites) {
-  std::unordered_map<uint32_t, std::stack<EventIndex>> threadStacks;
-  std::ifstream file(filename, std::ios::binary);
+constexpr uint32_t NO_DATA = -1;
 
-  if (!file.is_open()) {
-    std::cerr << "Error opening file: " << filename << std::endl;
-    return;
-  }
+void parseBinaryFile(std::ifstream &file, std::vector<Event> &events,
+                     std::unordered_map<EventIndex, EventIndex> &po,
+                     std::unordered_map<EventIndex, uint32_t> &goodWrites,
+                     std::unordered_map<uint32_t, uint32_t> &locks,
+                     uint32_t window, size_t windowSize) {
+  std::unordered_map<uint32_t, std::stack<EventIndex>> threadStacks;
+
+  // Reset state
+  po.clear();
+  events.clear();
+  goodWrites.clear();
 
   uint32_t i = 0;
-  while (true) {
+  while (i < windowSize) {
     uint64_t rawEvent;
 
     file.read(reinterpret_cast<char *>(&rawEvent), sizeof(rawEvent));
@@ -28,7 +30,8 @@ void parseBinaryFile(const std::string &filename, std::vector<Event> &events,
       break;
 
     if (file.fail()) {
-      std::cerr << "Error parsing input file at event " << i << std::endl;
+      std::cerr << "Error parsing input file at event "
+                << window * windowSize + i << std::endl;
       std::cerr << "Raw Event is: " << rawEvent << std::endl;
       break;
     }
@@ -41,9 +44,13 @@ void parseBinaryFile(const std::string &filename, std::vector<Event> &events,
       // Update GoodWrites
       goodWrites[events.size()] = e.getVarValue();
       break;
-    case EventType::Write:
     case EventType::Acquire:
+      locks[e.getVarId()] = e.getThreadId();
+      break;
     case EventType::Release:
+      locks.erase(e.getVarId());
+      break;
+    case EventType::Write:
       break;
     case EventType::Fork:
     case EventType::Begin:
@@ -57,11 +64,20 @@ void parseBinaryFile(const std::string &filename, std::vector<Event> &events,
 
     events.push_back(e);
     threadStacks[e.getThreadId()].push(events.size() - 1);
+
+    ++i;
   }
 
-  file.close();
+  // 2. Handle unreleased locks
+  for (auto p : locks) {
+    uint64_t raw_event =
+        Event::createRawEvent(EventType::Release, p.second, p.first, NO_DATA);
+    Event e = Event(raw_event);
+    events.push_back(e);
+    threadStacks[p.second].push(events.size() - 1);
+  }
 
-  // 2. Construct PO
+  // 3. Construct PO
   for (auto &pair : threadStacks) {
     std::stack<EventIndex> &stack = pair.second;
     EventIndex next = stack.top();
@@ -74,6 +90,4 @@ void parseBinaryFile(const std::string &filename, std::vector<Event> &events,
       next = curr;
     }
   }
-
-  ++i;
 }

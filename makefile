@@ -26,18 +26,19 @@ TEST_CONVERTER=scripts/convert_test.py
 
 readable_traces = $(shell ls $(HUMANREADABLE_TRACE_DIR)/*.txt)
 INPUT = trace/binary_trace/input1.txt
+SIZE = 100
 
 all: $(TARGET)
 
 run: clean $(TARGET)
 	@echo "Running with input file: $(INPUT)"
 	@echo ""
-	@./$(TARGET) $(INPUT)
+	@./$(TARGET) $(INPUT) -s $(SIZE) -v
 
 debug: clean $(SRC) $(DEPS)
 	mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(SRC)
-	./$(TARGET) $(INPUT)
+	./$(TARGET) $(INPUT) -s $(SIZE) -v
 
 $(TARGET): $(SRC) $(DEPS)
 	mkdir -p $(BIN_DIR)

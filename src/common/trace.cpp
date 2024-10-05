@@ -14,13 +14,15 @@ struct TraceHash {
 };
 
 class Trace {
-  std::unordered_map<uint32_t, long long> mmap;
+  std::unordered_map<uint32_t, uint32_t> mmap;
   std::unordered_set<uint32_t> lockset;
   std::unordered_set<EventIndex> events; // indices into allEvents vector
 
 public:
   Trace(std::vector<Event> &allEvents,
-        std::unordered_map<EventIndex, EventIndex> &po) {
+        std::unordered_map<EventIndex, EventIndex> &po,
+        std::unordered_map<uint32_t, uint32_t> &prevLocks,
+        std::unordered_map<uint32_t, uint32_t> prevMmap) {
     std::unordered_set<EventIndex> tmp;
     for (const auto &pair : po) {
       tmp.insert(pair.second);
@@ -32,6 +34,13 @@ public:
         events.insert(i);
       }
     }
+
+    // Insert locks acquired in prev window
+    for (auto p : prevLocks) {
+      lockset.insert(p.first);
+    }
+
+    mmap = prevMmap;
   }
 
   Trace(const Trace &) = default;
@@ -106,6 +115,8 @@ public:
     return executables;
   }
 
+  std::unordered_map<uint32_t, uint32_t> getMmap() { return mmap; }
+
   bool isFinished() { return events.empty(); }
 
   bool operator==(const Trace &other) const {
@@ -132,8 +143,8 @@ size_t TraceHash::operator()(const Trace &trace) const {
 
   size_t mmapHash = trace.mmap.size();
   for (const auto &[key, value] : trace.mmap) {
-    mmapHash ^= std::hash<uint8_t>()(key) ^
-                std::hash<long long>()(value) + 0x9e3779b9 + (mmapHash << 6) +
+    mmapHash ^= std::hash<uint32_t>()(key) ^
+                std::hash<uint32_t>()(value) + 0x9e3779b9 + (mmapHash << 6) +
                     (mmapHash >> 2); // Combine hashes
   }
 

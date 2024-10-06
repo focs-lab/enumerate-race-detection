@@ -91,3 +91,20 @@ std::ostream &operator<<(std::ostream &os, const Event &event) {
 }
 
 typedef std::vector<Event>::size_type EventIndex;
+
+typedef std::pair<uint32_t, EventIndex> EventId;
+
+struct EventIdHasher {
+  std::size_t operator()(const std::pair<uint32_t, EventIndex> &p) const {
+    std::size_t h1 = std::hash<uint32_t>()(p.first);
+    std::size_t h2 = std::hash<EventIndex>()(p.second);
+    return h1 ^ (h2 << 1); // Combine hashes of first and second
+  }
+};
+
+struct EventIdEqual {
+  bool operator()(const std::pair<uint32_t, EventIndex> &lhs,
+                  const std::pair<uint32_t, EventIndex> &rhs) const {
+    return lhs == rhs;
+  }
+};

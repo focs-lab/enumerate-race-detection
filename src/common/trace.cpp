@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include "event.cpp"
 
@@ -16,31 +17,15 @@ struct TraceHash {
 class Trace {
   std::unordered_map<uint32_t, uint32_t> mmap;
   std::unordered_set<uint32_t> lockset;
-  std::unordered_set<EventIndex> events; // indices into allEvents vector
+  std::unordered_set<EventId, EventIdHasher, EventIdEqual>
+      events; // indices into threadEvents
+  uint32_t depth = 0;
 
 public:
-  Trace(std::vector<Event> &allEvents,
-        std::unordered_map<EventIndex, EventIndex> &po,
-        std::unordered_map<uint32_t, uint32_t> &prevLocks,
-        std::unordered_map<uint32_t, uint32_t> prevMmap) {
-    std::unordered_set<EventIndex> tmp;
-    for (const auto &pair : po) {
-      tmp.insert(pair.second);
+  Trace(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents) {
+    for (auto p : threadEvents) {
+      events.insert(std::make_pair(p.first, 0));
     }
-
-    // Insert first event of each thread into events
-    for (EventIndex i = 0; i < allEvents.size(); ++i) {
-      if (tmp.find(i) == tmp.end()) {
-        events.insert(i);
-      }
-    }
-
-    // Insert locks acquired in prev window
-    for (auto p : prevLocks) {
-      lockset.insert(p.first);
-    }
-
-    mmap = prevMmap;
   }
 
   Trace(const Trace &) = default;
@@ -49,15 +34,19 @@ public:
   Trace &operator=(Trace &&) = default;
   friend struct TraceHash;
 
-  Trace appendEvent(std::vector<Event> &allEvents, EventIndex idx,
-                    std::unordered_map<EventIndex, EventIndex> &po) {
+  Trace
+  appendEvent(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
+              EventId id) {
     Trace t(*this);
-    t.events.erase(idx);
+    t.events.erase(id);
 
-    if (po.find(idx) != po.end())
-      t.events.insert(po[idx]);
+    size_t s = threadEvents[id.first].size();
+    if (id.second + 1 != s)
+      t.events.insert(std::make_pair(id.first, id.second + 1));
+    else
+      t.events.insert(std::make_pair(id.first, -1));
 
-    Event &event = allEvents[idx];
+    Event &event = threadEvents[id.first][id.second];
     switch (event.getEventType()) {
     case EventType::Acquire:
       t.lockset.insert(event.getVarId());
@@ -78,31 +67,36 @@ public:
       break;
     }
 
+    ++t.depth;
     return t;
   }
 
-  std::vector<EventIndex>
-  getExecutableEvents(std::vector<Event> &allEvents,
-                      std::unordered_map<EventIndex, uint32_t> &goodWrites) {
-    std::vector<EventIndex> executables;
-    for (const auto idx : events) {
-      Event event = allEvents[idx];
+  std::vector<EventId> getExecutableEvents(
+      std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
+      std::unordered_map<EventId, uint32_t, EventIdHasher, EventIdEqual>
+          &goodWrites) {
+    std::vector<EventId> executables;
+    for (const auto id : events) {
+      if (id.second == -1)
+        continue;
+
+      Event event = threadEvents[id.first][id.second];
       switch (event.getEventType()) {
       case EventType::Acquire:
         if (lockset.find(event.getVarId()) == lockset.end())
-          executables.push_back(idx);
+          executables.push_back(id);
         break;
       case EventType::Release:
         if (lockset.find(event.getVarId()) != lockset.end())
-          executables.push_back(idx);
+          executables.push_back(id);
         break;
       case EventType::Write:
-        executables.push_back(idx);
+        executables.push_back(id);
         break;
       case EventType::Read:
         // Do nothing
-        if (mmap[event.getVarId()] == goodWrites[idx])
-          executables.push_back(idx);
+        if (mmap[event.getVarId()] == goodWrites[id])
+          executables.push_back(id);
         break;
       default:
         // Nothing should come here
@@ -117,7 +111,17 @@ public:
 
   std::unordered_map<uint32_t, uint32_t> getMmap() { return mmap; }
 
-  bool isFinished() { return events.empty(); }
+  bool isTerminated() {
+    for (auto p : events) {
+      if (p.second != -1)
+        return false;
+    }
+    return true;
+  }
+
+  bool isFinished(size_t windowSize) { return depth == windowSize; }
+
+  void resetDepth() { depth = 0; }
 
   bool operator==(const Trace &other) const {
     if (mmap != other.mmap)
@@ -134,7 +138,9 @@ public:
     return true;
   }
 
-  std::unordered_set<EventIndex> &getEventIds() { return events; }
+  std::unordered_set<EventId, EventIdHasher, EventIdEqual> &getEventIds() {
+    return events;
+  }
 };
 
 size_t TraceHash::operator()(const Trace &trace) const {
@@ -150,7 +156,7 @@ size_t TraceHash::operator()(const Trace &trace) const {
 
   size_t eventHash = trace.events.size();
   for (const auto idx : trace.events) {
-    eventHash ^= std::hash<EventIndex>()(idx) + 0x9e3779b9 + (eventHash << 6) +
+    eventHash ^= EventIdHasher()(idx) + 0x9e3779b9 + (eventHash << 6) +
                  (eventHash >> 2); // Combine hashes
   }
 

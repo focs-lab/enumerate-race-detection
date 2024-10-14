@@ -28,6 +28,10 @@ readable_traces = $(shell ls $(HUMANREADABLE_TRACE_DIR)/*.txt)
 INPUT = trace/binary_trace/input1.txt
 SIZE = 100
 
+CSV_GENERATOR = scripts/benchmark_to_csv.py
+LOG_DIR = logs/output
+CSV_DIR = logs/csv
+
 all: $(TARGET)
 
 run: clean $(TARGET)
@@ -66,6 +70,10 @@ gen_traces: $(TRACE_GENERATOR)
 		echo "Generating trace for $$file..."; \
 		$(TRACE_GENERATOR) $$file $(FORMATTED_TRACE_DIR);\
 	done
+
+.PHONY = gen_csv
+gen_csv:
+	python3 $(CSV_GENERATOR) $(LOG_DIR) $(CSV_DIR)
 
 # Clean target to remove the compiled files
 clean:

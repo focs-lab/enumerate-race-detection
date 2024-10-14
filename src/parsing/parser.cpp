@@ -3,12 +3,16 @@
 #include <iostream>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "../common/event.cpp"
 
 constexpr uint32_t NO_DATA = -1;
 
+// Assumption is locks are acq and rel in pairs
+// So regardless of how one window executes, only the init prev locks matter
+// execution does not affect the state of the next locks
 void parseBinaryFile(std::ifstream &file, std::vector<Event> &events,
                      std::unordered_map<EventIndex, EventIndex> &po,
                      std::unordered_map<EventIndex, uint32_t> &goodWrites,
@@ -20,6 +24,11 @@ void parseBinaryFile(std::ifstream &file, std::vector<Event> &events,
   po.clear();
   events.clear();
   goodWrites.clear();
+
+#ifdef DEBUG
+  std::unordered_set<uint32_t> vars;
+  std::unordered_set<uint32_t> lockVars;
+#endif
 
   uint32_t i = 0;
   while (i < windowSize) {
@@ -45,10 +54,12 @@ void parseBinaryFile(std::ifstream &file, std::vector<Event> &events,
       goodWrites[events.size()] = e.getVarValue();
       break;
     case EventType::Acquire:
-      locks[e.getVarId()] = e.getThreadId();
+      locks[e.getVarId()]++;
       break;
     case EventType::Release:
-      locks.erase(e.getVarId());
+      locks[e.getVarId()]--;
+      if (locks[e.getVarId()] <= 0)
+        locks.erase(e.getVarId());
       break;
     case EventType::Write:
       break;
@@ -62,22 +73,21 @@ void parseBinaryFile(std::ifstream &file, std::vector<Event> &events,
       break;
     }
 
+#ifdef DEBUG
+    if (e.getEventType() == EventType::Acquire ||
+        e.getEventType() == EventType::Release)
+      lockVars.insert(e.getVarId());
+    else
+      vars.insert(e.getVarId());
+#endif
+
     events.push_back(e);
     threadStacks[e.getThreadId()].push(events.size() - 1);
 
     ++i;
   }
 
-  // 2. Handle unreleased locks
-  for (auto p : locks) {
-    uint64_t raw_event =
-        Event::createRawEvent(EventType::Release, p.second, p.first, NO_DATA);
-    Event e = Event(raw_event);
-    events.push_back(e);
-    threadStacks[p.second].push(events.size() - 1);
-  }
-
-  // 3. Construct PO
+  // 2. Construct PO
   for (auto &pair : threadStacks) {
     std::stack<EventIndex> &stack = pair.second;
     EventIndex next = stack.top();
@@ -90,4 +100,20 @@ void parseBinaryFile(std::ifstream &file, std::vector<Event> &events,
       next = curr;
     }
   }
+
+#ifdef DEBUG
+  std::cout << "Num threads: " << threadStacks.size() << std::endl;
+  std::cout << "Num variables: " << vars.size() << std::endl;
+  std::cout << "Num locks : " << lockVars.size() << std::endl;
+
+  int gwCnt = 0;
+  std::unordered_set<uint32_t> tmp;
+  for (auto p : goodWrites) {
+    if (tmp.find(p.second) == tmp.end()) {
+      tmp.insert(p.second);
+      ++gwCnt;
+    }
+  }
+  std::cout << "Num unique good writes: " << gwCnt << std::endl;
+#endif
 }

@@ -1,0 +1,5 @@
+Acq 0 1 0
+Read 0 X_0 1
+Acq 1 1 0
+Write 1 X_0 1
+Rel 0 1 0

@@ -11,7 +11,7 @@ auto main(int argc, char *argv[]) -> int {
 
   Config c = parseConfig(argc, argv);
 
-  std::cout << "Window size: " << c.windowSize << std::endl;
+  std::cout << "Window size: " << c.windowSize << std::endl << std::endl;
 
   auto start = std::chrono::high_resolution_clock::now();
   bool isConsistent = windowing(c.inputFile.value(), c.windowSize, c.verbose);

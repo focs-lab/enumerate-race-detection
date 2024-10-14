@@ -26,7 +26,8 @@ bool verify_sc(std::vector<Event> &allEvents,
                std::unordered_map<EventIndex, uint32_t> &goodWrites,
                std::unordered_map<uint32_t, uint32_t> &prevLocks,
                std::unordered_set<std::unordered_map<uint32_t, uint32_t>,
-                                  MapHasher, MapEqual> &prevMmaps) {
+                                  MapHasher, MapEqual> &prevMmaps,
+               bool isLastWindow) {
   std::unordered_set<std::unordered_map<uint32_t, uint32_t>, MapHasher,
                      MapEqual>
       nextMmaps;
@@ -77,6 +78,25 @@ bool verify_sc(std::vector<Event> &allEvents,
         res = true;
         if (nextMmaps.find(reordering.getMmap()) == nextMmaps.end())
           nextMmaps.insert(reordering.getMmap());
+
+        if (isLastWindow) {
+#ifdef DEBUG
+          std::cout << "Max stack size in window: " << stackSize << std::endl;
+          std::cout << "Max seen size in window: " << seenSize << std::endl;
+#endif
+
+          std::stack<Event> witness = reordering.generateWitness(seen);
+          std::cout << std::endl << "Witness: [" << std::endl;
+          while (!witness.empty()) {
+            Event e = witness.top();
+            witness.pop();
+
+            std::cout << e << std::endl;
+          }
+          std::cout << "]" << std::endl << std::endl;
+
+          return res;
+        }
       }
 
       for (auto i : reordering.getExecutableEvents(allEvents, goodWrites)) {
@@ -128,12 +148,15 @@ bool windowing(std::string &filename, size_t windowSize, bool verbose) {
 
     std::unordered_map<uint32_t, uint32_t> currLocks = nextLocks;
 
+    std::stack<Event> witness;
+
     parseBinaryFile(file, allEvents, po, goodWrites, nextLocks, window,
                     windowSize);
 
     // printParsingDebug(allEvents, po, goodWrites, nextLocks, prevMmaps);
 
-    bool res = verify_sc(allEvents, po, goodWrites, currLocks, prevMmaps);
+    bool res =
+        verify_sc(allEvents, po, goodWrites, currLocks, prevMmaps, file.eof());
 
 #ifdef DEBUG
     auto end = std::chrono::high_resolution_clock::now();

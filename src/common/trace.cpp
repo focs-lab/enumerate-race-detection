@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <iostream>
+#include <optional>
+#include <stack>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -17,6 +19,16 @@ class Trace {
   std::unordered_map<uint32_t, uint32_t> mmap;
   std::unordered_set<uint32_t> lockset;
   std::unordered_set<EventIndex> events; // indices into allEvents vector
+
+  std::optional<Event> curr;
+  std::unordered_map<uint32_t, uint32_t> prevMmap;
+  std::unordered_set<EventIndex> prevEvents; // indices into allEvents vector
+
+  Trace(std::unordered_map<uint32_t, uint32_t> prevMmap,
+        std::unordered_set<EventIndex> prevEvents) {
+    mmap = prevMmap;
+    events = prevEvents;
+  }
 
 public:
   Trace(std::vector<Event> &allEvents,
@@ -52,12 +64,17 @@ public:
   Trace appendEvent(std::vector<Event> &allEvents, EventIndex idx,
                     std::unordered_map<EventIndex, EventIndex> &po) {
     Trace t(*this);
+    t.prevMmap = t.mmap;
+    t.prevEvents = t.events;
+
     t.events.erase(idx);
 
     if (po.find(idx) != po.end())
       t.events.insert(po[idx]);
 
     Event &event = allEvents[idx];
+    t.curr = event;
+
     switch (event.getEventType()) {
     case EventType::Acquire:
       t.lockset.insert(event.getVarId());
@@ -79,6 +96,22 @@ public:
     }
 
     return t;
+  }
+
+  std::stack<Event> generateWitness(std::unordered_set<Trace, TraceHash> seen) {
+    std::stack<Event> s;
+
+    Trace &t = *this;
+    while (t.curr.has_value()) {
+      s.push(t.curr.value());
+      Trace prev = Trace(t.prevMmap, t.prevEvents);
+      auto it = seen.find(prev);
+      if (it == seen.end())
+        return s;
+      t = *seen.find(prev);
+    }
+
+    return s;
   }
 
   std::vector<EventIndex>

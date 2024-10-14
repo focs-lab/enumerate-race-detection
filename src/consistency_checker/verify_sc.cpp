@@ -100,7 +100,8 @@ bool verify_sc(std::vector<Event> &allEvents,
       }
 
       for (auto i : reordering.getExecutableEvents(allEvents, goodWrites)) {
-        Trace nextReordering = reordering.appendEvent(allEvents, i, po);
+        Trace nextReordering =
+            reordering.appendEvent(allEvents, i, po, isLastWindow);
         if (seen.find(nextReordering) == seen.end()) {
           stack.push(nextReordering);
           seen.insert(nextReordering);

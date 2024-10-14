@@ -62,10 +62,13 @@ public:
   friend struct TraceHash;
 
   Trace appendEvent(std::vector<Event> &allEvents, EventIndex idx,
-                    std::unordered_map<EventIndex, EventIndex> &po) {
+                    std::unordered_map<EventIndex, EventIndex> &po,
+                    bool isLastWindow) {
     Trace t(*this);
-    t.prevMmap = t.mmap;
-    t.prevEvents = t.events;
+    if (isLastWindow) {
+      t.prevMmap = t.mmap;
+      t.prevEvents = t.events;
+    }
 
     t.events.erase(idx);
 
@@ -73,7 +76,8 @@ public:
       t.events.insert(po[idx]);
 
     Event &event = allEvents[idx];
-    t.curr = event;
+    if (isLastWindow)
+      t.curr = event;
 
     switch (event.getEventType()) {
     case EventType::Acquire:

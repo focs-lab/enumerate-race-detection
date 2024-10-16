@@ -1,4 +1,4 @@
-Window,Num threads,Num locks,Num unique good writes,Max stack size,Max seen size,Num mmaps,Time taken (sec),Window result,Window Size
+Window,Num threads,Num Variables,Num locks,Num unique good writes,Max stack size,Max seen size,Num mmaps,Time taken (sec),Window result,Window Size
 0,2,1,1,2,4,20,2,0,true,10
 0,1,1,1,0,1,2,1,0,true,2
 1,2,0,1,0,1,2,1,0,true,2

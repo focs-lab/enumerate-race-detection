@@ -1,0 +1,168 @@
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 10 -v"
+User time (seconds): 0.38
+System time (seconds): 0.00
+Percent of CPU this job got: 98%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.39
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 4192
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 233
+Voluntary context switches: 3
+Involuntary context switches: 37
+Swaps: 0
+File system inputs: 48
+File system outputs: 120
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 20 -v"
+User time (seconds): 1.51
+System time (seconds): 0.08
+Percent of CPU this job got: 99%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 0:01.61
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 5728
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 594
+Voluntary context switches: 1
+Involuntary context switches: 245
+Swaps: 0
+File system inputs: 0
+File system outputs: 56
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 30 -v"
+User time (seconds): 13.08
+System time (seconds): 0.01
+Percent of CPU this job got: 99%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 0:13.16
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 14024
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 2773
+Voluntary context switches: 1
+Involuntary context switches: 1082
+Swaps: 0
+File system inputs: 0
+File system outputs: 48
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 40 -v"
+User time (seconds): 21.30
+System time (seconds): 0.01
+Percent of CPU this job got: 99%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 0:21.45
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 19496
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 4301
+Voluntary context switches: 24
+Involuntary context switches: 1222
+Swaps: 0
+File system inputs: 0
+File system outputs: 32
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 50 -v"
+User time (seconds): 29.10
+System time (seconds): 0.06
+Percent of CPU this job got: 99%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 0:29.28
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 143360
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 35330
+Voluntary context switches: 33
+Involuntary context switches: 1206
+Swaps: 0
+File system inputs: 0
+File system outputs: 32
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 60 -v"
+User time (seconds): 227.72
+System time (seconds): 0.27
+Percent of CPU this job got: 99%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 3:48.98
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 391944
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 121597
+Voluntary context switches: 107
+Involuntary context switches: 10610
+Swaps: 0
+File system inputs: 0
+File system outputs: 48
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------
+Command being timed: "./bin/verify_sc trace/binary_trace/jigsaw.txt -s 70 -v"
+User time (seconds): 78.53
+System time (seconds): 0.04
+Percent of CPU this job got: 99%
+Elapsed (wall clock) time (h:mm:ss or m:ss): 1:19.01
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Maximum resident set size (kbytes): 72364
+Average resident set size (kbytes): 0
+Major (requiring I/O) page faults: 0
+Minor (reclaiming a frame) page faults: 19639
+Voluntary context switches: 18
+Involuntary context switches: 3238
+Swaps: 0
+File system inputs: 0
+File system outputs: 40
+Socket messages sent: 0
+Socket messages received: 0
+Signals delivered: 0
+Page size (bytes): 4096
+Exit status: 0
+----------------------------------------------------

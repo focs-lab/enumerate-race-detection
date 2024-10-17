@@ -47,6 +47,11 @@ debug: clean $(SRC) $(DEPS)
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(SRC)
 	./$(TARGET) $(INPUT) -s $(SIZE) -v
 
+benchmark: clean $(SRC) $(DEPS)
+	mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(SRC)
+	command time -v ./$(TARGET) $(INPUT) -s $(SIZE) -v
+
 $(TARGET): $(SRC) $(DEPS)
 	mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
@@ -79,6 +84,7 @@ gen_csv:
 	python3 $(CSV_GENERATOR) $(LOG_DIR) $(CSV_DIR)
 
 prep_csv:
+	rm $(PREP_CSV_DIR)/*
 	python3 $(PREP_CSV_GENERATOR) $(CSV_DIR) $(PREP_CSV_DIR)
 
 # Clean target to remove the compiled files

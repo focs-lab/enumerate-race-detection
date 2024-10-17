@@ -36,6 +36,8 @@ bool verify_sc(std::vector<Event> &allEvents,
   int i = 1;
   int seenSize = 0;
   int stackSize = 0;
+
+  std::cout << "Num mmaps: " << prevMmaps.size() << std::endl;
 #endif
 
   // Extra check here to guard against locks not acq/rel in pairs
@@ -137,7 +139,7 @@ bool windowing(std::string &filename, size_t windowSize, bool verbose) {
 
 #ifdef DEBUG
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Num mmaps: " << prevMmaps.size() << std::endl;
+    // std::cout << "Num mmaps: " << prevMmaps.size() << std::endl;
     std::cout << "Time taken: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end -
                                                                        start)

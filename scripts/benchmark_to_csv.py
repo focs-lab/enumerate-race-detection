@@ -28,7 +28,7 @@ def process_window(log_lines, idx):
 
 def convert_log(log_lines):
     rows = [
-        "Window,Num threads,Num locks,Num unique good writes,Max stack size,Max seen size,Num mmaps,Time taken (sec),Window result"
+        "Window,Num threads,Num Variables,Num locks,Num unique good writes,Num mmaps,Max stack size,Max seen size,Time taken (sec),Window result"
     ]
 
     i = 6

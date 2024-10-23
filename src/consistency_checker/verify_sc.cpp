@@ -22,7 +22,7 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
                bool &terminated, uint32_t window, size_t windowSize,
                std::unordered_set<Trace, TraceHash> &windowState) {
   std::unordered_set<Trace, TraceHash> nextWindowState;
-  // std::unordered_set<Trace, TraceHash> seen(windowSize);
+  std::unordered_set<Trace, TraceHash> seen(windowSize);
   bool res = false;
 
 #ifdef DEBUG
@@ -31,7 +31,7 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
 
   for (auto prevTrace : windowState) {
     std::stack<Trace> stack;
-    std::unordered_set<Trace, TraceHash> seen(windowSize);
+    // std::unordered_set<Trace, TraceHash> seen(windowSize);
 
     // #ifdef DEBUG
     //     std::cout << "Prev Trace: " << std::endl;

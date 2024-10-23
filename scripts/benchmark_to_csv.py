@@ -4,7 +4,7 @@ import os
 import sys
 
 headers = [
-    "Window,Num prev traces,Nodes explored,Time taken (sec),Window result"
+    "Window,Nodes explored,Num prev traces,Time taken (sec),Window result"
 ]
 window_line_cnt = len(headers[0].split(','))
 

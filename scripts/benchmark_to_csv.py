@@ -6,8 +6,9 @@ import sys
 headers = [
     "Window,Num prev traces,Nodes explored,Time taken (sec),Window result"
 ]
-window_line_cnt = len(rows)
+window_line_cnt = len(headers[0].split(','))
 
+prev_time = float(0)
 
 def extract_window_num(line):
     vals = line.split(" ")
@@ -20,11 +21,18 @@ def extract_metric(line):
 
 
 def process_window(log_lines, idx):
+    global prev_time
     data = []
     data.append(extract_window_num(log_lines[idx]).rstrip())
     for i in range(idx + 1, idx + window_line_cnt):
+        # if log_lines[i].startswith("Time taken"):
+        #   t = extract_metric(log_lines[i]).rstrip()
+        #   time = float(extract_metric(log_lines[i]).rstrip())
+        #   data.append(f"{time - prev_time}")
+        #   prev_time = time
+        # else:
+        #   data.append(extract_metric(log_lines[i]).rstrip())
         data.append(extract_metric(log_lines[i]).rstrip())
-
     return ",".join(data)
 
 

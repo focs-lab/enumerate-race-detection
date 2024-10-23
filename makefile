@@ -28,6 +28,13 @@ readable_traces = $(shell ls $(HUMANREADABLE_TRACE_DIR)/*.txt)
 INPUT = trace/binary_trace/input1.txt
 SIZE = 100
 
+CSV_GENERATOR = scripts/benchmark_to_csv.py
+LOG_DIR = logs/output
+CSV_DIR = logs/csv
+
+PREP_CSV_GENERATOR = scripts/prep_csv.py
+PREP_CSV_DIR = logs/combined
+
 all: $(TARGET)
 
 run: clean $(TARGET)
@@ -39,6 +46,11 @@ debug: clean $(SRC) $(DEPS)
 	mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(SRC)
 	./$(TARGET) $(INPUT) -s $(SIZE) -v
+
+benchmark: clean $(SRC) $(DEPS)
+	mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(SRC)
+	command time -v ./$(TARGET) $(INPUT) -s $(SIZE) -v
 
 $(TARGET): $(SRC) $(DEPS)
 	mkdir -p $(BIN_DIR)
@@ -66,6 +78,14 @@ gen_traces: $(TRACE_GENERATOR)
 		echo "Generating trace for $$file..."; \
 		$(TRACE_GENERATOR) $$file $(FORMATTED_TRACE_DIR);\
 	done
+
+.PHONY = gen_csv prep_csv
+gen_csv:
+	python3 $(CSV_GENERATOR) $(LOG_DIR) $(CSV_DIR)
+
+prep_csv:
+	rm $(PREP_CSV_DIR)/*
+	python3 $(PREP_CSV_GENERATOR) $(CSV_DIR) $(PREP_CSV_DIR)
 
 # Clean target to remove the compiled files
 clean:

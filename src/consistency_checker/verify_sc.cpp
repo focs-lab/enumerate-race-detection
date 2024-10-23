@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <chrono>
 
 #include "../common/event.cpp"
 #include "../common/trace.cpp"
@@ -21,15 +22,16 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
                bool &terminated, uint32_t window, size_t windowSize,
                std::unordered_set<Trace, TraceHash> &windowState) {
   std::unordered_set<Trace, TraceHash> nextWindowState;
-  std::unordered_set<Trace, TraceHash> seen(windowSize);
+  // std::unordered_set<Trace, TraceHash> seen(windowSize);
   bool res = false;
 
 #ifdef DEBUG
-  int i = 1;
+  uint64_t i = 1;
 #endif
 
   for (auto prevTrace : windowState) {
     std::stack<Trace> stack;
+    std::unordered_set<Trace, TraceHash> seen(windowSize);
 
     // #ifdef DEBUG
     //     std::cout << "Prev Trace: " << std::endl;
@@ -46,9 +48,12 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
     while (!stack.empty()) {
       Trace reordering = stack.top();
       stack.pop();
+      #ifdef DEBUG
+        ++i;
+      #endif
 
       // #ifdef DEBUG
-      //       std::cout << "Node " << i << std::endl;
+      //       std::cout << "Node " << i << " depth " << reordering.getDepth() << std::endl;
       //       for (auto id : reordering.getEventIds()) {
       //         std::cout << id.first << ", " << id.second << std::endl;
       //       }
@@ -65,6 +70,7 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
         res = true;
         if (nextWindowState.find(reordering) == nextWindowState.end())
           nextWindowState.insert(std::move(reordering));
+        continue;
       }
 
       for (auto i : reordering.getExecutableEvents(threadEvents, goodWrites)) {
@@ -77,6 +83,10 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
     }
   }
 
+  #ifdef DEBUG
+    std::cout << "Nodes explored: " << i << std::endl;
+  #endif
+
   windowState = std::move(nextWindowState);
   return res;
 }
@@ -84,6 +94,8 @@ bool verify_sc(std::unordered_map<uint32_t, std::vector<Event>> &threadEvents,
 bool windowing(std::string &filename, size_t windowSize, bool verbose) {
   std::unordered_map<uint32_t, std::vector<Event>> threadEvents;
   std::unordered_map<EventId, uint32_t, EventIdHasher, EventIdEqual> goodWrites;
+
+
 
   parseBinaryFile(filename, threadEvents, goodWrites);
 
@@ -93,12 +105,15 @@ bool windowing(std::string &filename, size_t windowSize, bool verbose) {
   Trace init(threadEvents);
   windowState.insert(init);
 
-  printParsingDebug(threadEvents, goodWrites);
+  // printParsingDebug(threadEvents, goodWrites);
 
   int window = 0;
   bool terminated = false;
 
   while (!terminated) {
+#ifdef DEBUG
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
     if (verbose)
       std::cout << "Window " << window << std::endl;
 
@@ -106,6 +121,14 @@ bool windowing(std::string &filename, size_t windowSize, bool verbose) {
                          windowSize, windowState);
 
 #ifdef DEBUG
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Num prev traces: " << windowState.size() << std::endl;
+    std::cout << "Time taken: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                       start)
+                         .count() /
+                     1000.0
+              << std::endl;
     std::cout << std::boolalpha << "Curr window result: " << res << std::endl
               << std::endl;
 #endif

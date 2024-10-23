@@ -141,6 +141,10 @@ public:
   std::unordered_set<EventId, EventIdHasher, EventIdEqual> &getEventIds() {
     return events;
   }
+
+  uint32_t getDepth() {
+    return depth;
+  }
 };
 
 size_t TraceHash::operator()(const Trace &trace) const {

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "event.cpp"
 
@@ -79,6 +80,13 @@ public:
     }
 
     return t;
+  }
+
+  std::vector<EventIndex>
+  getPOExecutableEvents(std::vector<Event> &allEvents,
+                        std::unordered_map<EventIndex, uint32_t> &goodWrites) {
+    std::vector<EventIndex> res(events.begin(), events.end());
+    return res;
   }
 
   std::vector<EventIndex>

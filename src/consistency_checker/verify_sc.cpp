@@ -12,6 +12,7 @@
 #include "../common/trace.cpp"
 #include "../parsing/parser.cpp"
 #include "../utils/map_hash.cpp"
+#include "estimate.cpp"
 
 void printParsingDebug(
     std::vector<Event> &allEvents,
@@ -32,8 +33,10 @@ bool verify_sc(std::vector<Event> &allEvents,
       nextMmaps;
   bool res = false;
 
+  uint64_t j = 0;
+  uint64_t k = 0;
 #ifdef DEBUG
-  int i = 1;
+  uint64_t i = 0;
   int seenSize = 0;
   int stackSize = 0;
 
@@ -52,6 +55,9 @@ bool verify_sc(std::vector<Event> &allEvents,
   }
 
   for (auto prevMmap : prevMmaps) {
+    uint64_t x = 0;
+    uint64_t y = 0;
+    uint64_t z = 0;
     std::stack<Trace> stack;
     std::unordered_set<Trace, TraceHash> seen(allEvents.size());
 
@@ -60,6 +66,7 @@ bool verify_sc(std::vector<Event> &allEvents,
 
     while (!stack.empty()) {
 #ifdef DEBUG
+      ++i;
       stackSize = stack.size() > stackSize ? stack.size() : stackSize;
       seenSize = seen.size() > seenSize ? seen.size() : seenSize;
 #endif
@@ -86,14 +93,27 @@ bool verify_sc(std::vector<Event> &allEvents,
         if (seen.find(nextReordering) == seen.end()) {
           stack.push(nextReordering);
           seen.insert(nextReordering);
+        } else {
+          ++y;
         }
+        // ++z;
+        // stack.push(nextReordering);
       }
     }
+
+#ifdef DEBUG
+    // i = x > i ? x : i;
+    j = y > j ? y : j;
+    k = z > k ? z : k;
+#endif
   }
 
 #ifdef DEBUG
   std::cout << "Max stack size in window: " << stackSize << std::endl;
   std::cout << "Max seen size in window: " << seenSize << std::endl;
+  std::cout << "Node explored: " << i << std::endl;
+  std::cout << "Seen before: " << j << std::endl;
+  // std::cout << "z: " << k << std::endl;
 #endif
 
   prevMmaps = std::move(nextMmaps);
@@ -134,6 +154,18 @@ bool windowing(std::string &filename, size_t windowSize, bool verbose) {
                     windowSize);
 
     // printParsingDebug(allEvents, po, goodWrites, nextLocks, prevMmaps);
+
+#ifdef DEBUG
+    std::cout << "Estimate Cost: "
+              << estimate_cost(allEvents, po, goodWrites, currLocks, prevMmaps)
+              << std::endl;
+    std::cout << "Estimate Time Taken: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::high_resolution_clock::now() - start)
+                         .count() /
+                     1000.0
+              << std::endl;
+#endif
 
     bool res = verify_sc(allEvents, po, goodWrites, currLocks, prevMmaps);
 
@@ -178,6 +210,7 @@ void printParsingDebug(
 
   std::cout << "PO: " << std::endl;
   for (auto p : po) {
+    // std::cout << "[" << p.first << ", " << p.second << "]" << std::endl;
     std::cout << "[" << allEvents[p.first].prettyString() << ", "
               << allEvents[p.second].prettyString() << "]" << std::endl;
   }

@@ -4,7 +4,10 @@ import os
 import sys
 
 
-window_line_cnt = 10
+headers = [
+    "Window,Num threads,Num Variables,Num locks,Num unique good writes,Estimate Cost,Estimate Time Taken,Num mmaps,Max stack size,Max seen size,Node explored,Node seen before,Time taken (sec),Window result"
+]
+window_line_cnt = len(headers[0].split(","))
 
 
 def extract_window_num(line):
@@ -27,10 +30,7 @@ def process_window(log_lines, idx):
 
 
 def convert_log(log_lines):
-    rows = [
-        "Window,Num threads,Num Variables,Num locks,Num unique good writes,Num mmaps,Max stack size,Max seen size,Time taken (sec),Window result"
-    ]
-
+    rows = list(headers)
     i = 6
     while i < len(log_lines):
         # print(i)

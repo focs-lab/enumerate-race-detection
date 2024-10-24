@@ -81,6 +81,7 @@ gen_traces: $(TRACE_GENERATOR)
 
 .PHONY = gen_csv prep_csv
 gen_csv:
+	rm $(CSV_DIR)/*
 	python3 $(CSV_GENERATOR) $(LOG_DIR) $(CSV_DIR)
 
 prep_csv:

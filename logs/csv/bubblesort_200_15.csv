@@ -1,0 +1,1 @@
+Window,Num threads,Num Variables,Num locks,Num unique good writes,Estimate Cost,Estimate Time Taken,Num mmaps,Max stack size,Max seen size,Node explored,Node seen before,Time taken (sec),Window result

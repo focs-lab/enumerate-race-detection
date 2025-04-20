@@ -43,7 +43,7 @@ This combines building and running together. Witness generation, however, is dis
 
 
 ## Trace Format
-~enumerate_race_detection~ support the following events: 
+**enumerate_race_detection** support the following events: 
 - Read/Write
 - Acquire/Release
 - Begin/End

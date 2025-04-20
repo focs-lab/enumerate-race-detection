@@ -1,6 +1,6 @@
-#include "consistency_checker/verify_sc.cpp"
-#include "utils/config.cpp"
-#include <chrono>
+#include "config.hpp"
+#include "parser.hpp"
+#include "predictor.hpp"
 #include <iostream>
 
 auto main(int argc, char *argv[]) -> int {
@@ -9,25 +9,23 @@ auto main(int argc, char *argv[]) -> int {
     return 0;
   }
 
-  Config c = parseConfig(argc, argv);
+  try {
+    Option opts = parseOptions(argc, argv);
+    auto start = std::chrono::high_resolution_clock::now();
 
-  std::cout << "Window size: " << c.windowSize << std::endl;
+    ParseResult pr = parse(opts.inputFile.value());
+    Predictor pred{pr, opts};
+    pred.predict();
 
-  auto start = std::chrono::high_resolution_clock::now();
-  bool isConsistent = windowing(c.inputFile.value(), c.windowSize, c.verbose);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::high_resolution_clock::now() - start) /
+                    1000.0;
+    std::cout << "Total time taken (sec): " << duration.count() << std::endl;
 
-#ifdef DEBUG
-  std::cout << std::endl;
-#endif
+    pred.reportRaces(opts);
+  } catch (const std::exception &e) {
+    std::cout << e.what() << std::endl;
+  }
 
-  std::cout << std::boolalpha << "Is sequentially consistent: " << isConsistent
-            << std::endl;
-  auto end = std::chrono::high_resolution_clock::now();
-  std::cout << "Verify_SC took: "
-            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                     start)
-                       .count() /
-                   1000.0
-            << "s" << std::endl;
   return 0;
 }

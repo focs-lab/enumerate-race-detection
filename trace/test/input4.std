@@ -1,8 +1,0 @@
-T0|acq(l1)|0
-T0|w(x)|0
-T0|rel(l1)|0
-T1|acq(l1)|0
-T1|w(x)|1
-T1|r(x)|1
-T1|rel(l1)|0
-T0|r(x)|0
